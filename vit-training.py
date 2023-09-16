@@ -49,7 +49,7 @@ def main():
         
         ## prepare data
         print('-- Load Data...')
-        dataset = load_dataset("imagefolder", data_dir="planet-imgs-original/split1/")
+        dataset = load_dataset("imagefolder", data_dir=f"planet-imgs-original/split{s+1}/")
         prepared_ds = dataset.with_transform(transform)
         
         ## prepare labels
