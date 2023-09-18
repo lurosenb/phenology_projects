@@ -7,10 +7,11 @@ def main():
     #-------------------------
     # data
     #-------------------------
-    test_data_path = '../buffelgrass-onetime-test.csv'
-    test_feature_path = '../buffelgrass-onetime-test.npy'
-    variable_path = '../buffelgrass-onetime-variables.npy'
-    test_data = pd.read_csv(test_data_path)
+    data_name = 'pheno'
+    test_path = '../'+data_name+'-test.csv'
+    test_feature_path = '../'+data_name+'-test-features.npy'
+    variable_path = '../variables.npy'
+    test_data = pd.read_csv(test_path)
     test_features = np.load(test_feature_path, allow_pickle=True)
     variables = np.load(variable_path, allow_pickle=True)
     label = test_data.Abundance_Binary.values ## labels
@@ -24,7 +25,7 @@ def main():
     acc = 100*(tn+tp)/len(label)
     fp_rate = 100*(fp)/len(label)
     fn_rate = 100*(fn)/len(label)
-    np.save('results/prcp-single.npy', np.array([acc, fp_rate, fn_rate]))
+    np.save(f'results/{data_name}-prcp-single.npy', np.array([acc, fp_rate, fn_rate]))
     
     print('-------------------')
     print(f'Accuracy: {acc}%')

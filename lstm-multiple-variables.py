@@ -31,7 +31,6 @@ def main():
     # arguments
     #-------------------------
     input_dim = 16
-    #lr = 1e-4
     lr = 2e-5
     batch_size = 2
     hidden_dim = 128
@@ -41,14 +40,15 @@ def main():
     # ----------------
     # load data
     # ----------------
-    train_data_path = '../buffelgrass-onetime-train.csv'
-    test_data_path = '../buffelgrass-onetime-test.csv'
-    train_feature_path = '../buffelgrass-onetime-train.npy'
-    test_feature_path = '../buffelgrass-onetime-test.npy'
-    variable_path = '../buffelgrass-onetime-variables.npy'
+    data_name = 'pheno'
+    train_path = '../'+data_name+'-train.csv'
+    test_path = '../'+data_name+'-test.csv'
+    train_feature_path = '../'+data_name+'-train-features.npy'
+    test_feature_path = '../'+data_name+'-test-features.npy'
+    variable_path = '../variables.npy'
     
-    train_data = pd.read_csv(train_data_path)
-    test_data = pd.read_csv(test_data_path)
+    train_data = pd.read_csv(train_path)
+    test_data = pd.read_csv(test_path)
     train_features = np.load(train_feature_path, allow_pickle=True).astype('float')
     test_features = np.load(test_feature_path, allow_pickle=True).astype('float')
     
@@ -154,7 +154,7 @@ def main():
         test_fp.append(fp_rate)
         test_fn.append(fn_rate)
         
-    np.save('results/LSTM-multiple-variables.npy', np.stack([test_acc, test_fp, test_fn]))
+    np.save(f'results/{data_name}-lstm-multiple-variables.npy', np.stack([test_acc, test_fp, test_fn]))    
     print(f'Avg Acc: {np.mean(test_acc), np.std(test_acc)}')
     print(f'Avg FP: {np.mean(test_fp), np.std(test_fp)}')
     print(f'Avg FN: {np.mean(test_fn), np.std(test_fn)}')

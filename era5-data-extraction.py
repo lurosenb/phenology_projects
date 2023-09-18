@@ -4,7 +4,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from tqdm import tqdm
-from sklearn.metrics import confusion_matrix
 
 def main():
     
@@ -16,8 +15,9 @@ def main():
     #-------------------------
     # data
     #-------------------------
-    train_path = '../buffelgrass-onetime-train.csv'
-    test_path = '../buffelgrass-onetime-test.csv'
+    data_name = 'pheno'
+    train_path = '../'+data_name+'-train.csv'
+    test_path = '../'+data_name+'-test.csv'
     train_filtered = pd.read_csv(train_path)
     test_filtered = pd.read_csv(test_path)
     days = 24
@@ -42,20 +42,36 @@ def main():
         prec = prec.select(variables)
         
         ## end date
-        end_date = train_filtered.Observation_Date.values[i].split()[0]
-        end_month, end_day, end_year = end_date.split('/')
-        end_month = int(end_month)
-        end_day = int(end_day)
-        end_year = int(end_year)
-        end = datetime(end_year, end_month, end_day)
-        
-        ## start date
-        start_date = (datetime.strptime(end_date, "%m/%d/%Y") - timedelta(days=days)).strftime("%m/%d/%Y")
-        start_month, start_day, start_year = start_date.split('/')
-        start_month = int(start_month)
-        start_day = int(start_day)
-        start_year = int(start_year)
-        start = datetime(start_year, start_month, start_day)
+        if data_name == 'onetime':
+            end_date = train_filtered.Observation_Date.values[i].split()[0]
+            end_month, end_day, end_year = end_date.split('/')
+            end_month = int(end_month)
+            end_day = int(end_day)
+            end_year = int(end_year)
+            end = datetime(end_year, end_month, end_day)
+            
+            ## start date
+            start_date = (datetime.strptime(end_date, "%m/%d/%Y") - timedelta(days=days)).strftime("%m/%d/%Y")
+            start_month, start_day, start_year = start_date.split('/')
+            start_month = int(start_month)
+            start_day = int(start_day)
+            start_year = int(start_year)
+            start = datetime(start_year, start_month, start_day)
+        else:
+            end_date = train_filtered.Observation_Date.values[i]
+            end_year, end_month, end_day = end_date.split('-')
+            end_month = int(end_month)
+            end_day = int(end_day)
+            end_year = int(end_year)
+            end = datetime(end_year, end_month, end_day)
+            
+            ## start date
+            start_date = (datetime.strptime(end_date, "%Y-%m-%d") - timedelta(days=days)).strftime("%Y-%m-%d")
+            start_year, start_month, start_day = start_date.split('-')
+            start_month = int(start_month)
+            start_day = int(start_day)
+            start_year = int(start_year)
+            start = datetime(start_year, start_month, start_day) 
         
         prec = prec.filterDate(start, end)
         
@@ -83,20 +99,36 @@ def main():
         prec = prec.select(variables)
         
         ## end date
-        end_date = test_filtered.Observation_Date.values[i].split()[0]
-        end_month, end_day, end_year = end_date.split('/')
-        end_month = int(end_month)
-        end_day = int(end_day)
-        end_year = int(end_year)
-        end = datetime(end_year, end_month, end_day)
-        
-        ## start date
-        start_date = (datetime.strptime(end_date, "%m/%d/%Y") - timedelta(days=days)).strftime("%m/%d/%Y")
-        start_month, start_day, start_year = start_date.split('/')
-        start_month = int(start_month)
-        start_day = int(start_day)
-        start_year = int(start_year)
-        start = datetime(start_year, start_month, start_day)
+        if data_name == 'onetime':
+            end_date = test_filtered.Observation_Date.values[i].split()[0]
+            end_month, end_day, end_year = end_date.split('/')
+            end_month = int(end_month)
+            end_day = int(end_day)
+            end_year = int(end_year)
+            end = datetime(end_year, end_month, end_day)
+            
+            ## start date
+            start_date = (datetime.strptime(end_date, "%m/%d/%Y") - timedelta(days=days)).strftime("%m/%d/%Y")
+            start_month, start_day, start_year = start_date.split('/')
+            start_month = int(start_month)
+            start_day = int(start_day)
+            start_year = int(start_year)
+            start = datetime(start_year, start_month, start_day)
+        else:
+            end_date = test_filtered.Observation_Date.values[i]
+            end_year, end_month, end_day = end_date.split('-')
+            end_month = int(end_month)
+            end_day = int(end_day)
+            end_year = int(end_year)
+            end = datetime(end_year, end_month, end_day)
+            
+            ## start date
+            start_date = (datetime.strptime(end_date, "%Y-%m-%d") - timedelta(days=days)).strftime("%Y-%m-%d")
+            start_year, start_month, start_day = start_date.split('-')
+            start_month = int(start_month)
+            start_day = int(start_day)
+            start_year = int(start_year)
+            start = datetime(start_year, start_month, start_day) 
         
         prec = prec.filterDate(start, end)
         
@@ -116,9 +148,9 @@ def main():
     
     train_data = np.stack(train_data)
     test_data = np.stack(test_data)
-    np.save('../buffelgrass-onetime-train.npy', train_data)
-    np.save('../buffelgrass-onetime-test.npy', test_data)
-    np.save('../buffelgrass-onetime-variables.npy', variables)
+    np.save('../'+data_name+'-train-features.npy', train_data)
+    np.save('../'+data_name+'-test-features.npy', test_data)
+    np.save('../variables.npy', variables)
 
 if __name__ == "__main__":
     main()
