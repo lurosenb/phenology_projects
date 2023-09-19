@@ -1,3 +1,4 @@
+import argparse
 import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
@@ -5,12 +6,19 @@ from sklearn.metrics import confusion_matrix
 def main():
 
     #-------------------------
+    # arguments
+    #-------------------------
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data_name', required=True, help='filename of test data')
+    args = parser.parse_args()    
+    data_name = args.data_name
+    
+    #-------------------------
     # data
     #-------------------------
-    data_name = 'pheno'
-    test_path = '../'+data_name+'-test.csv'
-    test_feature_path = '../'+data_name+'-test-features.npy'
-    variable_path = '../variables.npy'
+    test_path = '../datasets/'+data_name+'-test.csv'
+    test_feature_path = '../datasets/'+data_name+'-test-features.npy'
+    variable_path = '../datasets/variables.npy'
     test_data = pd.read_csv(test_path)
     test_features = np.load(test_feature_path, allow_pickle=True)
     variables = np.load(variable_path, allow_pickle=True)

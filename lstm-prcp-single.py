@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-import random
+import argparse
 from tqdm import tqdm
 from sklearn.metrics import confusion_matrix
 from torch.utils.data import DataLoader, TensorDataset
@@ -29,25 +29,32 @@ class BuffelLSTM(nn.Module):
 def main():
 
     #-------------------------
-    # arguments
+    # hyperparameters
     #-------------------------
     input_dim = 1
-    #lr = 1e-4
-    lr = 2e-5
-    batch_size = 2
+    batch_size = 4
     hidden_dim = 128
-    num_epochs = 100
+    num_epochs = 500
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    #-------------------------
+    # arguments
+    #-------------------------
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data_name', required=True, help='filename of test data')
+    parser.add_argument('--lr', required=True, help='filename of test data')
+    args = parser.parse_args()    
+    data_name = args.data_name
+    lr = float(args.lr)
     
     # ----------------
     # load data
     # ----------------
-    data_name = 'pheno'
-    train_path = '../'+data_name+'-train.csv'
-    test_path = '../'+data_name+'-test.csv'
-    train_feature_path = '../'+data_name+'-train-features.npy'
-    test_feature_path = '../'+data_name+'-test-features.npy'
-    variable_path = '../variables.npy'
+    train_path = '../datasets/'+data_name+'-train.csv'
+    test_path = '../datasets/'+data_name+'-test.csv'
+    train_feature_path = '../datasets/'+data_name+'-train-features.npy'
+    test_feature_path = '../datasets/'+data_name+'-test-features.npy'
+    variable_path = '../datasets/variables.npy'
     
     train_data = pd.read_csv(train_path)
     test_data = pd.read_csv(test_path)

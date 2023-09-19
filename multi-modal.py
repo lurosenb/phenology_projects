@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
+import argparse
 from tqdm import tqdm
 from sklearn.metrics import confusion_matrix
 from torch.utils.data import DataLoader, TensorDataset
@@ -51,6 +52,12 @@ def main():
     embed_dim = 768
     num_epochs = 100
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data_name', required=True, help='filename of test data')
+    args = parser.parse_args()    
+    data_name = args.data_name
+    
     model_name = 'google/vit-base-patch16-224-in21k'
     feature_extractor = ViTImageProcessor.from_pretrained(model_name)
     vit_model = ViTForImageClassification.from_pretrained(model_name,num_labels=2)
@@ -65,11 +72,11 @@ def main():
     # ----------------
     # load data
     # ----------------
-    train_data_path = '../buffelgrass-onetime-train.csv'
-    test_data_path = '../buffelgrass-onetime-test.csv'
-    train_feature_path = '../buffelgrass-onetime-train.npy'
-    test_feature_path = '../buffelgrass-onetime-test.npy'
-    variable_path = '../buffelgrass-onetime-variables.npy'
+    train_path = '../datasets/'+data_name+'-train.csv'
+    test_path = '../datasets/'+data_name+'-test.csv'
+    train_feature_path = '../datasets/'+data_name+'-train-features.npy'
+    test_feature_path = '../datasets/'+data_name+'-test-features.npy'
+    variable_path = '../datasets/variables.npy'
     
     train_data = pd.read_csv(train_data_path)
     test_data = pd.read_csv(test_data_path)
@@ -184,7 +191,7 @@ def main():
         test_fp.append(fp_rate)
         test_fn.append(fn_rate)
         
-    np.save('results/multi-modal.npy', np.stack([test_acc, test_fp, test_fn]))
+    np.save(f'results/{data_name}-multi-modal.npy', np.stack([test_acc, test_fp, test_fn]))
     print(f'Avg Acc: {np.mean(test_acc), np.std(test_acc)}')
     print(f'Avg FP: {np.mean(test_fp), np.std(test_fp)}')
     print(f'Avg FN: {np.mean(test_fn), np.std(test_fn)}')

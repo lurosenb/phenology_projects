@@ -20,8 +20,10 @@ def main():
     #-------------------------
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_name', required=True, help='filename of test data')
+    parser.add_argument('--data_name', required=True, help='filename of test data')    
     args = parser.parse_args()    
-    model_name = args.model_name
+    model_name = 'google/vit-base-patch16-224-in21k'
+    data_name = args.data_name
     feature_extractor = ViTImageProcessor.from_pretrained(model_name)
     
     # ----------------
@@ -130,7 +132,7 @@ def main():
         test_fp.append(fp_rate)
         test_fn.append(fn_rate)
                        
-    np.save('results/VIT.npy', np.stack([test_acc, test_fp, test_fn]))
+    np.save(f'results/{data_name}-vit.npy', np.stack([test_acc, test_fp, test_fn]))
     print(f'Avg Acc: {np.mean(test_acc), np.std(test_acc)}')
     print(f'Avg FP: {np.mean(test_fp), np.std(test_fp)}')
     print(f'Avg FN: {np.mean(test_fn), np.std(test_fn)}')

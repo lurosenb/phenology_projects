@@ -1,4 +1,5 @@
 import ee
+import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,11 +14,18 @@ def main():
     ee.Initialize()
     
     #-------------------------
+    # arguments
+    #-------------------------
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data_name', required=True, help='filename of test data')
+    args = parser.parse_args()    
+    data_name = args.data_name
+    
+    #-------------------------
     # data
     #-------------------------
-    data_name = 'pheno'
-    train_path = '../'+data_name+'-train.csv'
-    test_path = '../'+data_name+'-test.csv'
+    train_path = '../datasets/'+data_name+'-train.csv'
+    test_path = '../datasets/'+data_name+'-test.csv'
     train_filtered = pd.read_csv(train_path)
     test_filtered = pd.read_csv(test_path)
     days = 24
@@ -148,9 +156,9 @@ def main():
     
     train_data = np.stack(train_data)
     test_data = np.stack(test_data)
-    np.save('../'+data_name+'-train-features.npy', train_data)
-    np.save('../'+data_name+'-test-features.npy', test_data)
-    np.save('../variables.npy', variables)
+    np.save('../datasets/'+data_name+'-train-features.npy', train_data)
+    np.save('../datasets/'+data_name+'-test-features.npy', test_data)
+    np.save('../datasets/variables.npy', variables)
 
 if __name__ == "__main__":
     main()
