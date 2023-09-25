@@ -1,7 +1,7 @@
 import argparse
 import numpy as np
 import pandas as pd
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, f1_score
 
 def main():
 
@@ -29,16 +29,18 @@ def main():
     # prediction
     #-------------------------    
     pred = 1*(np.sum(test_features[:,:,index]*39.3701, axis=1)>1.7) # 1 meter = 39.3701 inches
-    tn, fp, fn, tp = confusion_matrix(pred, label).ravel()            
+    tn, fp, fn, tp = confusion_matrix(pred, label).ravel()
+    f1 = f1_score(pred, label)
     acc = 100*(tn+tp)/len(label)
     fp_rate = 100*(fp)/len(label)
     fn_rate = 100*(fn)/len(label)
-    np.save(f'results/{data_name}-prcp-single.npy', np.array([acc, fp_rate, fn_rate]))
+    np.save(f'results/{data_name}-prcp-single.npy', np.array([acc, f1, fp_rate, fn_rate]))
     
     print('-------------------')
     print(f'Accuracy: {acc}%')
+    print(f'F1: {f1}%')
     print(f'FP: {fp_rate}%')
-    print(f'FN: {fn_rate}%')    
+    print(f'FN: {fn_rate}%')
         
 if __name__ == "__main__":
     main()

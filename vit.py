@@ -5,7 +5,7 @@ import shutil
 import argparse
 import evaluate
 from datasets import load_dataset
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, f1_score
 from transformers import ViTImageProcessor, ViTForImageClassification, TrainingArguments, Trainer
 
 seed=816
@@ -19,7 +19,6 @@ def main():
     # arguments
     #-------------------------
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_name', required=True, help='filename of test data')
     parser.add_argument('--data_name', required=True, help='filename of test data')    
     args = parser.parse_args()    
     model_name = 'google/vit-base-patch16-224-in21k'
@@ -52,8 +51,10 @@ def main():
     # iterate each split
     # ----------------
     test_acc = []
+    test_f1 = []
     test_fp = []
-    test_fn = []    
+    test_fn = []
+    
     for s in range(5):
         print('---------------------')
         print(f'Split: {s+1}...')
@@ -122,18 +123,22 @@ def main():
         preds = np.argmax(test.predictions,axis=1)
         tn, fp, fn, tp = confusion_matrix(preds, labels).ravel()
         acc = 100 * (tn + tp) / len(labels)
+        f1 = f1_score(labels, preds)
         fp_rate = 100 * fp / len(labels)
         fn_rate = 100 * fn / len(labels)
         
         print(f'Accuracy: {acc}%')
+        print(f'F1: {f1}%')
         print(f'FP: {fp_rate}%')
         print(f'FN: {fn_rate}%')
         test_acc.append(acc)
+        test_f1.append(f1)
         test_fp.append(fp_rate)
         test_fn.append(fn_rate)
                        
-    np.save(f'results/{data_name}-vit.npy', np.stack([test_acc, test_fp, test_fn]))
+    np.save(f'results/{data_name}-vit.npy', np.stack([test_acc, test_f1, test_fp, test_fn]))
     print(f'Avg Acc: {np.mean(test_acc), np.std(test_acc)}')
+    print(f'Avg F1: {np.mean(test_f1), np.std(test_f1)}')
     print(f'Avg FP: {np.mean(test_fp), np.std(test_fp)}')
     print(f'Avg FN: {np.mean(test_fn), np.std(test_fn)}')
     

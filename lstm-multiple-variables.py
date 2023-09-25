@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 import argparse
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, f1_score
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import KFold
 
@@ -84,8 +84,10 @@ def main():
     # ----------------    
     kf = KFold(n_splits=5)
     test_acc = []
+    test_f1 = []
     test_fp = []
     test_fn = []
+    best_loss = np.inf
     
     for i, (train_index, val_index) in enumerate(kf.split(train_features)):
         
@@ -138,6 +140,10 @@ def main():
                 torch.save(model.state_dict(), "lowest_loss_model.pth")
                 print(f"New lowest loss: {lowest_loss}. Model saved.")
         
+        # save best model from cv
+        if lowest_loss<best_loss:
+            torch.save(model.state_dict(), f"{data_name}_best_model_lstm_multiple_variables.pth")
+            
         # load highest performing model
         best_model = BuffelLSTM(input_dim, hidden_dim)
         best_model.load_state_dict(torch.load("lowest_loss_model.pth"))    
@@ -152,19 +158,23 @@ def main():
                 all_labels.extend(target.numpy())
         
         tn, fp, fn, tp = confusion_matrix(all_preds, all_labels).ravel()
+        f1 = f1_score(all_preds, all_labels)        
         acc = 100 * (tn + tp) / len(all_labels)
         fp_rate = 100 * fp / len(all_labels)
         fn_rate = 100 * fn / len(all_labels)
         
         print(f'Accuracy: {acc}%')
+        print(f'F1: {f1}%')
         print(f'FP: {fp_rate}%')
         print(f'FN: {fn_rate}%')
         test_acc.append(acc)
+        test_f1.append(f1)
         test_fp.append(fp_rate)
         test_fn.append(fn_rate)
         
-    np.save(f'results/{data_name}-lstm-multiple-variables.npy', np.stack([test_acc, test_fp, test_fn]))    
+    np.save(f'results/{data_name}-lstm-multiple-variables.npy', np.stack([test_acc, test_f1, test_fp, test_fn]))
     print(f'Avg Acc: {np.mean(test_acc), np.std(test_acc)}')
+    print(f'Avg F1: {np.mean(test_f1), np.std(test_f1)}')
     print(f'Avg FP: {np.mean(test_fp), np.std(test_fp)}')
     print(f'Avg FN: {np.mean(test_fn), np.std(test_fn)}')
     

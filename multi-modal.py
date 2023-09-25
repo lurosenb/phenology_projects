@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import argparse
 from tqdm import tqdm
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, f1_score
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import KFold
 from datasets import load_dataset
@@ -43,7 +43,7 @@ class BuffelMulti(nn.Module):
 def main():
 
     #-------------------------
-    # arguments
+    # parameters
     #-------------------------
     input_dim = 16
     lr = 2e-5
@@ -53,18 +53,23 @@ def main():
     num_epochs = 100
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
+    #-------------------------
+    # arguments
+    #-------------------------    
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_name', required=True, help='filename of test data')
     args = parser.parse_args()    
-    data_name = args.data_name
-    
+    data_name = args.data_name    
     model_name = 'google/vit-base-patch16-224-in21k'
     feature_extractor = ViTImageProcessor.from_pretrained(model_name)
     vit_model = ViTForImageClassification.from_pretrained(model_name,num_labels=2)
     vit_model = vit_model.vit
-    for param in vit_model.parameters():
+    for param in vit_model.parameters(): 
         param.requires_grad = False
-        
+    
+    # ----------------
+    # functions
+    # ----------------    
     def transform(example_batch):
         inputs = feature_extractor([x for x in example_batch['image']], return_tensors='pt')
         return inputs
@@ -78,8 +83,8 @@ def main():
     test_feature_path = '../datasets/'+data_name+'-test-features.npy'
     variable_path = '../datasets/variables.npy'
     
-    train_data = pd.read_csv(train_data_path)
-    test_data = pd.read_csv(test_data_path)
+    train_data = pd.read_csv(train_path)
+    test_data = pd.read_csv(test_path)
     train_features = np.load(train_feature_path, allow_pickle=True).astype('float')
     test_features = np.load(test_feature_path, allow_pickle=True).astype('float')
     
@@ -102,8 +107,10 @@ def main():
     # ----------------    
     kf = KFold(n_splits=5)
     test_acc = []
+    test_f1 = []
     test_fp = []
     test_fn = []
+    best_loss = np.inf
     
     for i, (train_index, val_index) in enumerate(kf.split(train_features)):
         
@@ -165,6 +172,10 @@ def main():
                 torch.save(model.state_dict(), "lowest_loss_model.pth")
                 print(f"New lowest loss: {lowest_loss}. Model saved.")
         
+        # save best model from cv
+        if lowest_loss<best_loss:
+            torch.save(model.state_dict(), f"{data_name}_best_model_multi_modal.pth")
+        
         # load highest performing model
         best_model = BuffelMulti(input_dim, hidden_dim, embed_dim, vit_model)
         best_model.load_state_dict(torch.load("lowest_loss_model.pth"))    
@@ -180,19 +191,23 @@ def main():
                 all_labels.extend(target.numpy())
         
         tn, fp, fn, tp = confusion_matrix(all_preds, all_labels).ravel()
+        f1 = f1_score(all_preds, all_labels)
         acc = 100 * (tn + tp) / len(all_labels)
         fp_rate = 100 * fp / len(all_labels)
         fn_rate = 100 * fn / len(all_labels)
         
         print(f'Accuracy: {acc}%')
+        print(f'F1: {f1}%')
         print(f'FP: {fp_rate}%')
         print(f'FN: {fn_rate}%')
         test_acc.append(acc)
+        test_f1.append(f1)
         test_fp.append(fp_rate)
         test_fn.append(fn_rate)
         
-    np.save(f'results/{data_name}-multi-modal.npy', np.stack([test_acc, test_fp, test_fn]))
+    np.save(f'results/{data_name}-multi-modal.npy', np.stack([test_acc, test_f1, test_fp, test_fn]))
     print(f'Avg Acc: {np.mean(test_acc), np.std(test_acc)}')
+    print(f'Avg F1: {np.mean(test_f1), np.std(test_f1)}')
     print(f'Avg FP: {np.mean(test_fp), np.std(test_fp)}')
     print(f'Avg FN: {np.mean(test_fn), np.std(test_fn)}')
     
