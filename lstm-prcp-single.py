@@ -143,6 +143,7 @@ def main():
         
         # save best model from cv
         if lowest_loss<best_loss:
+            best_loss=lowest_loss
             torch.save(model.state_dict(), f"{data_name}_best_model_lstm_prcp_single.pth")
         
         # load highest performing model

@@ -54,6 +54,7 @@ def main():
     test_f1 = []
     test_fp = []
     test_fn = []
+    best_loss = np.inf
     
     for s in range(5):
         print('---------------------')
@@ -135,7 +136,17 @@ def main():
         test_f1.append(f1)
         test_fp.append(fp_rate)
         test_fn.append(fn_rate)
-                       
+        
+        # save best model from cv
+        lowest_loss = trainer.evaluate(prepared_ds['validation'])['eval_loss']
+        if lowest_loss<best_loss:
+            best_loss=lowest_loss
+            train_preds = np.argmax(trainer.predict(prepared_ds['train']).predictions,axis=1)
+            val_preds = np.argmax(trainer.predict(prepared_ds['validation']).predictions,axis=1)
+            np.save(f'vit-best-model-prediction-test.npy', preds)
+            np.save(f'vit-best-model-prediction-train.npy_{s}', train_preds)
+            np.save(f'vit-best-model-prediction-val.npy_{s}', val_preds)
+            
     np.save(f'results/{data_name}-vit.npy', np.stack([test_acc, test_f1, test_fp, test_fn]))
     print(f'Avg Acc: {np.mean(test_acc), np.std(test_acc)}')
     print(f'Avg F1: {np.mean(test_f1), np.std(test_f1)}')
